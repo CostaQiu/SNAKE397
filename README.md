@@ -28,22 +28,29 @@ plus two ways to watch it: a **3D cartoon viewer** in the browser and a real **W
 ## Install the screensaver (Windows, no Python needed)
 
 1. Download the repository (green **Code** button, then *Download ZIP*) and unzip it.
-2. Double-click `install_screensaver.bat` (classic look, 5 idle minutes). Options: `install_screensaver.bat 10 cartoon` means 10 idle minutes and the 3D cartoon look.
-   It copies the files to `%LOCALAPPDATA%\SnakeSaver\app` and sets the screensaver in your user registry. No admin rights.
-   Both screensavers are installed; the second argument only picks the active one. Switch later in the Windows screensaver settings ("SnakeSaver" = classic, "SnakeCartoon" = cartoon).
-3. Preview at once: `%LOCALAPPDATA%\SnakeSaver\app\SnakeSaver.scr /s` (or `SnakeCartoon.scr /s`). Any key press or mouse move quits it.
+2. Double-click `install_screensaver.bat` (classic green look; add a number for the idle minutes, e.g. `install_screensaver.bat 10`; default 5).
+   It copies three files to `%LOCALAPPDATA%\SnakeSaver\app` and sets the screensaver in your user registry. No admin rights.
+   For the cartoon look run `cartoon_screensaver\install_cartoon.bat` instead (same options).
+3. Preview at once: `%LOCALAPPDATA%\SnakeSaver\app\SnakeSaver.scr /s` (cartoon: `SnakeCartoon.scr /s`). Any key press or mouse move quits it.
 4. Change the idle time or switch it off in *Settings > Personalization > Lock screen > Screen saver*.
 5. Remove everything with `uninstall_screensaver.bat`.
 
-**Two looks, same engine.** `SnakeSaver.scr` is the classic green retro-monitor page (`snake_classic.html`, fully offline).
-`SnakeCartoon.scr` is the 3D cartoon page (`snake3d.html`, three.js loaded from a CDN, so it needs internet access). Both are built from the same
-`screensaver/SnakeSaver.cs`; the launcher picks the page from its own file name. In both, the body alternates **10 light / 10 dark cells counted from the head**.
+**Two looks, same engine.** `SnakeSaver.scr` shows the classic green retro-monitor page (`snake_classic.html`). `cartoon_screensaver/SnakeCartoon.scr`
+shows the cartoon page (`cartoon_screensaver/snake_cartoon.html`). Both are plain 2D canvas, fully offline, and built from the same
+`screensaver/SnakeSaver.cs`; the launcher picks the page from its own file name. The numbers (SCORE / STEPS / GAME TIME and the clock) are the same in both.
+In both, the body is coloured in blocks of **10 cells counted from the head** (classic: light/dark green, cartoon: four colours), so the body
+reads as flowing instead of flickering like a marquee.
+
+**Share it:** `python package_zips.py` builds `dist/SnakeScreensaver-classic.zip` and `dist/SnakeScreensaver-cartoon.zip` (`python package_zips.py cartoon` for one). Friends unzip and double-click the install script.
 
 What it does:
 
 - One full-screen Edge window per monitor. All monitors show **the same game in lockstep** (each frame is computed from a shared clock).
 - Classic look: black background, green-phosphor look (everything green on black), light and dark body blocks, a bright-green triangle head and a small half-circle tail, a red apple as the food, SCORE / STEPS / GAME TIME and a clock.
   Constant 16 steps per second (2x), no smoothing.
+- Cartoon look (`cartoon_screensaver/`): sky-blue background with clouds, wooden frame, checkered lawn, a round green head with eyes that look where it is going, a tapered tail,
+  four body colours (mint, sky blue, violet, amber) in blocks of 10 cells, an outlined apple. Light on the GPU: the background is painted once, the snake layer is only
+  repainted when something changes, and the canvas runs at CSS-pixel resolution.
 - Only the primary monitor makes sound (square-wave blips). Any input quits it and cleans up every process it started.
 - Progress is saved in `%LOCALAPPDATA%\SnakeSaver\progress.txt`, so the game continues next time instead of restarting.
 
@@ -159,6 +166,8 @@ Test the screensaver without waiting for the idle timer: `screensaver\SnakeSaver
 snake_classic.html, replays_wins.js, screensaver/SnakeSaver.scr   everything the screensaver needs
 install_screensaver.bat, uninstall_screensaver.bat                one-click setup / removal
 snake3d.html, replays.js, live_server.py                          3D viewer and live mode
+cartoon_screensaver/                                              the cartoon screensaver (own folder, own install script)
+package_zips.py                                                   builds the zips to share
 snake_env.py, rl_train.py, rl_search.py, rl_demo.py               RL environment, training, search
 record_games.py, test_replays.py, test_snake_env.py               recording and tests
 rl_snake_best.pth                                                 trained network

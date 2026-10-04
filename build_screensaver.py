@@ -1,11 +1,11 @@
-"""Build screensaver/SnakeSaver.scr (classic green) and screensaver/SnakeCartoon.scr (3D cartoon) with the C# compiler
+"""Build screensaver/SnakeSaver.scr (classic green) and cartoon_screensaver/SnakeCartoon.scr (2D cartoon) with the C# compiler
 that ships with Windows (no downloads). Both come from the same source; the file name decides which page is shown."""
 import subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "screensaver" / "SnakeSaver.cs"
-OUTS = [HERE / "screensaver" / "SnakeSaver.scr", HERE / "screensaver" / "SnakeCartoon.scr"]
+OUTS = [HERE / "screensaver" / "SnakeSaver.scr", HERE / "cartoon_screensaver" / "SnakeCartoon.scr"]
 CSC = Path(r"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe")
 
 

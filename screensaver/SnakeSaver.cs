@@ -16,12 +16,12 @@ using System.Windows.Forms;
 
 static class SnakeSaver
 {
-    // The file name picks the look: SnakeCartoon.scr shows the 3D cartoon page, anything else the classic green page.
+    // The file name picks the look: SnakeCartoon.scr shows the 2D cartoon page, anything else the classic green page.
     static bool Cartoon
     {
         get { return Path.GetFileNameWithoutExtension(Process.GetCurrentProcess().MainModule.FileName).IndexOf("Cartoon", StringComparison.OrdinalIgnoreCase) >= 0; }
     }
-    static string PageName { get { return Cartoon ? "snake3d.html" : "snake_classic.html"; } }
+    static string PageName { get { return Cartoon ? "snake_cartoon.html" : "snake_classic.html"; } }
 
     // Page + replays are looked up next to the .scr first (so a copied folder works anywhere); the compiled-in path is the fallback.
     static string ProjectDir
@@ -211,7 +211,6 @@ static class SnakeSaver
                 string profile = Path.Combine(profiles, "slot" + i);
                 Directory.CreateDirectory(profile);
                 string url = new Uri(pageFile).AbsoluteUri + "#saver&host=scr&slot=" + i;
-                if (Cartoon) url += "&sps=16";             // same 2x speed as the classic page
                 string extra = Environment.GetEnvironmentVariable("SNAKESAVER_EXTRA");  // test hook, e.g. "&fps=0&pr=0"
                 if (!string.IsNullOrEmpty(extra)) url += extra;
                 url += "&t0=" + t0Ms;                       // shared clock: all screens show the same frame
