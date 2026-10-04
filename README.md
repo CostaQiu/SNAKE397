@@ -22,6 +22,7 @@ plus two ways to watch it: a **3D cartoon viewer** in the browser and a real **W
 | I want to… | Do this | Needs Python? |
 |---|---|---|
 | Use it as a Windows screensaver | Download the repo, run `install_screensaver.bat` | **No** (Windows 10/11 + Microsoft Edge) |
+| Watch it on a phone or in a browser | Open one self-contained file, `dist/snake397-cartoon.html` (build it with `python build_single_html.py`) | No |
 | Watch the 3D version | Open `snake3d.html` in a browser | No (needs internet to load three.js) |
 | Retrain / re-search / re-record games | `pip install -r requirements.txt`, then the scripts below | Yes |
 
@@ -58,6 +59,15 @@ Requirements and caveats: Windows 10/11 and Microsoft Edge (preinstalled). `Snak
 about it. If you would rather not trust it, read `screensaver/SnakeSaver.cs` (about 270 lines) and rebuild it with `python build_screensaver.py`,
 which uses the C# compiler that ships with Windows (`csc.exe`). The `.scr` looks for `snake_classic.html` next to itself first, so the
 folder can be moved or copied anywhere.
+
+## Single-file version (phone, browser, no install)
+
+`python build_single_html.py` writes `dist/snake397-cartoon.html` and `dist/snake397-classic.html` (about 330 KB each). Each is **one self-contained file**:
+the page and the recorded perfect games are inside it, no internet and no other file needed. Send the file, open it in any modern browser, phone included.
+
+- Tap anywhere to turn sound on or off (it starts silent because browsers block sound before a touch).
+- The screen is kept awake where the browser allows it, and the page fits any screen size, portrait or landscape.
+- Progress is remembered in the browser, so reopening continues the same game.
 
 ## 3D viewer
 
@@ -167,7 +177,7 @@ snake_classic.html, replays_wins.js, screensaver/SnakeSaver.scr   everything the
 install_screensaver.bat, uninstall_screensaver.bat                one-click setup / removal
 snake3d.html, replays.js, live_server.py                          3D viewer and live mode
 cartoon_screensaver/                                              the cartoon screensaver (own folder, own install script)
-package_zips.py                                                   builds the zips to share
+package_zips.py, build_single_html.py                             build the zips / single html files to share
 snake_env.py, rl_train.py, rl_search.py, rl_demo.py               RL environment, training, search
 record_games.py, test_replays.py, test_snake_env.py               recording and tests
 rl_snake_best.pth                                                 trained network

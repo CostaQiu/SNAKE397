@@ -2,13 +2,14 @@
 <html lang="en" translate="no">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="google" content="notranslate">
 <title>Snake</title>
 <style>
   :root { --phosphor: #4dff7d; }  /* old green-phosphor monitor: everything on screen is green on black */
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
   canvas { display: block; position: fixed; left: 0; top: 0; }
+  body { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
   .txt { position: fixed; color: var(--phosphor); text-shadow: 0 0 6px rgba(77, 255, 125, .55); font-family: "Courier New", Consolas, monospace; line-height: 1.35; white-space: nowrap; }
   .txt .time { font-size: 2.6em; font-weight: bold; letter-spacing: .04em; text-align: center; }
   .txt .date { font-size: .8em; text-align: center; opacity: .8; }
@@ -266,6 +267,23 @@ startGame(gi);
 if (SOUND_ON) {
   initAudio(); sfxStart();
   for (const ev of ["pointerdown", "keydown"]) window.addEventListener(ev, () => { if (ac && ac.state === "suspended") ac.resume(); }, { once: true });
+}
+if (!HOST_SCR) {  // opened as a normal page (phone, browser tab): silent until the first tap, a tap toggles sound, the screen is kept awake
+  const hint = document.createElement("div");
+  hint.style.cssText = "position:fixed;left:50%;bottom:12px;transform:translateX(-50%);padding:6px 14px;border-radius:14px;background:rgba(58,39,80,.85);color:#fff;font:14px 'Courier New',monospace;transition:opacity .6s;z-index:9;pointer-events:none;white-space:nowrap";
+  document.body.appendChild(hint);
+  let soundNow = false, hideT = 0;
+  const say = s => { hint.textContent = s; hint.style.opacity = 1; clearTimeout(hideT); hideT = setTimeout(() => { hint.style.opacity = 0; }, 2500); };
+  if (master) master.gain.value = 0;  // browsers block sound before a gesture anyway
+  say("Tap for sound");
+  window.addEventListener("pointerdown", () => {
+    if (ac && ac.state === "suspended") ac.resume();
+    soundNow = !soundNow; if (master) master.gain.value = soundNow ? 0.9 : 0;
+    say(soundNow ? "Sound on (tap to mute)" : "Sound off (tap for sound)");
+  });
+  const keepAwake = async () => { try { await navigator.wakeLock.request("screen"); } catch (e) { /* not supported or not allowed */ } };
+  keepAwake();
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
 }
 window.addEventListener("resize", layout);
 window.addEventListener("pagehide", saveProgress);

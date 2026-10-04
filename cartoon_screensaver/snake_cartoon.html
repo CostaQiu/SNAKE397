@@ -2,13 +2,14 @@
 <html lang="en" translate="no">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="google" content="notranslate">
 <title>Snake</title>
 <style>
   :root { --ink: #3a2750; }  /* same numbers and layout as the green page, drawn in the cartoon's dark purple ink */
   html, body { margin: 0; height: 100%; background: #bfe9ff; overflow: hidden; cursor: none; }
   canvas { display: block; position: fixed; left: 0; top: 0; }
+  body { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
   .txt { position: fixed; color: var(--ink); font-family: "Courier New", Consolas, monospace; line-height: 1.35; white-space: nowrap; }
   .txt .time { font-size: 2.6em; font-weight: bold; letter-spacing: .04em; text-align: center; }
   .txt .date { font-size: .8em; text-align: center; opacity: .8; }
@@ -98,8 +99,10 @@ function tick(nowMs) {
 const cv = $("c"), ctx = cv.getContext("2d"), bgcv = $("bg"), bg = bgcv.getContext("2d");
 let cell = 10, ox = 0, oy = 0;
 function layout() {
-  const w = innerWidth, h = innerHeight;   // CSS-pixel resolution on purpose: fewer pixels for the GPU to push on high-DPI screens
-  for (const c of [cv, bgcv]) { c.width = w; c.height = h; c.style.width = w + "px"; c.style.height = h + "px"; }
+  // screensaver: CSS-pixel resolution on purpose (fewer pixels for the GPU to push on high-DPI screens);
+  // as a normal page (phone, browser tab) use the screen's real sharpness, capped at 2x
+  const w = innerWidth, h = innerHeight, dpr = HOST_SCR ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+  for (const c of [cv, bgcv]) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); c.style.width = w + "px"; c.style.height = h + "px"; c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0); }
   cell = Math.max(6, Math.floor(Math.min(w, h) * 0.92 / W));
   ox = Math.floor((w - W * cell) / 2); oy = Math.floor((h - H * cell) / 2);
   drawBackground();
@@ -115,12 +118,13 @@ function cloud(x, y, s) {  // soft white cloud, painted once
   for (const [dx, dy, r] of [[0, 0, 1], [1.1, -0.3, 1.25], [2.3, 0, 1], [1.1, 0.35, 1.1]]) { bg.beginPath(); bg.arc(x + dx * s, y + dy * s, r * s, 0, 6.2832); bg.fill(); }
 }
 function drawBackground() {  // sky, clouds, wooden frame, checkered lawn: painted once per layout
-  const w = bgcv.width, h = bgcv.height, bw = W * cell, pad = Math.round(cell * 0.45);
+  const w = innerWidth, h = innerHeight, bw = W * cell, pad = Math.round(cell * 0.45);
   bg.fillStyle = "#bfe9ff"; bg.fillRect(0, 0, w, h);
   cloud(w * 0.07, h * 0.12, cell * 0.55); cloud(w * 0.80, h * 0.88, cell * 0.5); cloud(w * 0.86, h * 0.1, cell * 0.4);
   bg.lineJoin = "round";
   bg.fillStyle = "#ffc766"; bg.strokeStyle = "#a96d3b"; bg.lineWidth = Math.max(3, cell * 0.16);
-  bg.beginPath(); bg.roundRect(ox - pad, oy - pad, bw + 2 * pad, bw + 2 * pad, cell * 0.5); bg.fill(); bg.stroke();
+  bg.beginPath(); if (bg.roundRect) bg.roundRect(ox - pad, oy - pad, bw + 2 * pad, bw + 2 * pad, cell * 0.5); else bg.rect(ox - pad, oy - pad, bw + 2 * pad, bw + 2 * pad);  // old browsers lack roundRect
+  bg.fill(); bg.stroke();
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     bg.fillStyle = (x + y) % 2 ? "#b9ef86" : "#cbf79c"; bg.fillRect(ox + x * cell, oy + y * cell, cell, cell);
   }
@@ -249,6 +253,23 @@ startGame(gi);
 if (SOUND_ON) {
   initAudio(); sfxStart();
   for (const ev of ["pointerdown", "keydown"]) window.addEventListener(ev, () => { if (ac && ac.state === "suspended") ac.resume(); }, { once: true });
+}
+if (!HOST_SCR) {  // opened as a normal page (phone, browser tab): silent until the first tap, a tap toggles sound, the screen is kept awake
+  const hint = document.createElement("div");
+  hint.style.cssText = "position:fixed;left:50%;bottom:12px;transform:translateX(-50%);padding:6px 14px;border-radius:14px;background:rgba(58,39,80,.85);color:#fff;font:14px 'Courier New',monospace;transition:opacity .6s;z-index:9;pointer-events:none;white-space:nowrap";
+  document.body.appendChild(hint);
+  let soundNow = false, hideT = 0;
+  const say = s => { hint.textContent = s; hint.style.opacity = 1; clearTimeout(hideT); hideT = setTimeout(() => { hint.style.opacity = 0; }, 2500); };
+  if (master) master.gain.value = 0;  // browsers block sound before a gesture anyway
+  say("Tap for sound");
+  window.addEventListener("pointerdown", () => {
+    if (ac && ac.state === "suspended") ac.resume();
+    soundNow = !soundNow; if (master) master.gain.value = soundNow ? 0.9 : 0;
+    say(soundNow ? "Sound on (tap to mute)" : "Sound off (tap for sound)");
+  });
+  const keepAwake = async () => { try { await navigator.wakeLock.request("screen"); } catch (e) { /* not supported or not allowed */ } };
+  keepAwake();
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
 }
 window.addEventListener("resize", layout);
 window.addEventListener("pagehide", saveProgress);
