@@ -38,7 +38,7 @@
 const W = 20, H = 20, DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];
 const hash = location.hash;
 const Q = (k, d) => { const m = hash.match(new RegExp("[#&]" + k + "=([0-9]+)")); return m ? +m[1] : d; };
-const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL_T0 = Q("t0", 0), SPS = Q("sps", 8);
+const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL_T0 = Q("t0", 0), SPS = Q("sps", 16);
 const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title

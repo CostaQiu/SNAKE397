@@ -38,7 +38,7 @@ What it does:
 
 - One full-screen Edge window per monitor. All monitors show **the same game in lockstep** (each frame is computed from a shared clock).
 - Classic look: black background, green-phosphor look (everything green on black), light and dark body blocks, a bright-green triangle head and a small half-circle tail, a red apple as the food, SCORE / STEPS / GAME TIME and a clock.
-  Constant 8 steps per second (1x), no smoothing.
+  Constant 16 steps per second (2x), no smoothing.
 - Only the primary monitor makes sound (square-wave blips). Any input quits it and cleans up every process it started.
 - Progress is saved in `%LOCALAPPDATA%\SnakeSaver\progress.txt`, so the game continues next time instead of restarting.
 

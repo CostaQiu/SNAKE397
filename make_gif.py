@@ -13,7 +13,7 @@ INK_LIGHT = (92, 255, 140)
 EDGE = (3, 36, 13)
 INK, HEAD, TAIL = (31, 174, 75), (0, 255, 42), (62, 230, 115)  # green phosphor palette
 FOOD = PHOS = (77, 255, 125)
-SPS = 8  # steps per second shown by the screensaver
+SPS = 16  # steps per second shown by the screensaver
 
 
 def load_replays(path):
