@@ -43,7 +43,7 @@ const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only on
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
 const HEAD_COLOR = "#33d34a", TAIL_COLOR = "#e5383b";  // green head, red tail: easy to tell apart late in the game
 const INK = "#b4b9a8", INK_LIGHT = "#e2e6d6";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
-const STRIPE = 7;  // block length: STRIPE light cells, STRIPE dark cells, repeating from the head
+const STRIPE = 10;  // block length: STRIPE light cells, STRIPE dark cells, repeating from the head
 const SAVE_KEY = "snakeClassic.v1.slot" + SLOT;
 const REPLAYS = window.REPLAYS_WINS || window.REPLAYS;
 const $ = id => document.getElementById(id);
