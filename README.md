@@ -3,6 +3,10 @@
 A Snake AI that plays a **perfect 397-point game** (the maximum on a 20×20 board: 400 cells minus the 3 the snake starts with),
 plus two ways to watch it: a **3D cartoon viewer** in the browser and a real **Windows screensaver**.
 
+![One full game, time-lapse](docs/snake397.gif)
+
+*A whole 397-point game as a time-lapse (about 26,000 steps). Rendered by `make_gif.py` from a recorded game.*
+
 | Screensaver (classic 2D) | 3D viewer |
 |---|---|
 | ![classic screensaver](docs/classic_screensaver.png) | ![3D viewer](docs/3d_screensaver_preview.png) |
@@ -103,6 +107,20 @@ Search alone reaches 397 in only about 3% of games, so `record_games.py` runs ma
 - `screensaver/SnakeSaver.cs`: a C# launcher (.NET Framework, WinForms, WMI, P/Invoke). It starts one Edge `--kiosk` window per
   monitor, detects input with `GetLastInputInfo`, keeps the windows on top, reads progress from the window titles, and kills the whole process tree on exit.
   GPU acceleration is left **on**: in a real screensaver run it used about 6 to 12% GPU, while `--disable-gpu` was worse (about 19% GPU plus a full CPU core).
+
+## Results (and what this project does not do)
+
+**No Hamiltonian cycle.** The easy way to guarantee a full board is to walk a fixed cycle through all 400 cells forever. This project does not do that.
+The snake decides every move itself, with a neural network plus a short lookahead, and it takes direct routes to the food.
+
+| Method (20×20, max 397) | Average score | Share of the maximum | Perfect games |
+|---|---|---|---|
+| Network + safety mask | about 289 | about 73% | not measured |
+| Network + food-directed search | **about 345 to 353** (median about 390) | **about 87 to 89%** | **about 3%** |
+
+- Measured over 32 games per setting. The percentage is simply the average score divided by 397, so on average the snake fills roughly 87 to 89% of the board by itself.
+- Roughly 1 game in 30 ends with all 397 apples. The screensaver shows recorded games from that 3%, so it always looks perfect (see "Perfect games" below).
+- It does not need a GPU to *watch*: the screensaver and the viewers only replay recorded moves. Training uses a GPU when one is available (see `device` in `rl_train.py`).
 
 ## Tech stack
 

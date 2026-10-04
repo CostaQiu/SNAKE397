@@ -11,3 +11,4 @@ snake3d_screenshot_*.png
 screensaver/_SnakeSaver.build.cs
 snake3d_screensaver_preview.png
 rl_snake_last.pth
+dist/
