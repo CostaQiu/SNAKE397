@@ -9,9 +9,10 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = Path(__file__).resolve().parent
 DX, DY = [0, 1, 0, -1], [-1, 0, 1, 0]
 W = H = 20
-INK_LIGHT = (226, 230, 214)
-EDGE = (60, 64, 54)
-INK, HEAD, TAIL = (180, 185, 168), (51, 211, 74), (229, 56, 59)
+INK_LIGHT = (92, 255, 140)
+EDGE = (3, 36, 13)
+INK, HEAD, TAIL = (31, 174, 75), (228, 255, 236), (26, 158, 66)  # green phosphor palette
+FOOD = PHOS = (77, 255, 125)
 SPS = 8  # steps per second shown by the screensaver
 
 
@@ -88,12 +89,12 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
                 ox + (food[0] + 1) * cell - f - 1,
                 oy + (food[1] + 1) * cell - f - 1,
             ],
-            fill=INK,
+            fill=FOOD,
         )
     free = (w - h * 0.92) / 2
     big, small = fonts
     d.text(
-        (free / 2, h / 2 - 12), "SNAKE 397", font=big, fill=(255, 255, 255), anchor="mm"
+        (free / 2, h / 2 - 12), "SNAKE 397", font=big, fill=PHOS, anchor="mm"
     )
     d.text((free / 2, h / 2 + 12), "no Hamiltonian", font=small, fill=INK, anchor="mm")
     d.text((free / 2, h / 2 + 30), "cycle used", font=small, fill=INK, anchor="mm")
@@ -107,7 +108,7 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
     for i, (k, v) in enumerate(rows):
         y = h / 2 - 22 + i * 24
         d.text((x_l, y), k, font=small, fill=INK, anchor="lm")
-        d.text((x_r, y), v, font=small, fill=(255, 255, 255), anchor="rm")
+        d.text((x_r, y), v, font=small, fill=PHOS, anchor="rm")
     return img
 
 

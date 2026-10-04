@@ -6,9 +6,10 @@
 <meta name="google" content="notranslate">
 <title>Snake</title>
 <style>
+  :root { --phosphor: #4dff7d; }  /* old green-phosphor monitor: everything on screen is green on black */
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
   canvas { display: block; position: fixed; left: 0; top: 0; }
-  .txt { position: fixed; color: #fff; font-family: "Courier New", Consolas, monospace; line-height: 1.35; white-space: nowrap; }
+  .txt { position: fixed; color: var(--phosphor); text-shadow: 0 0 6px rgba(77, 255, 125, .55); font-family: "Courier New", Consolas, monospace; line-height: 1.35; white-space: nowrap; }
   .txt .time { font-size: 2.6em; font-weight: bold; letter-spacing: .04em; text-align: center; }
   .txt .date { font-size: .8em; text-align: center; opacity: .8; }
   .txt .row { display: flex; justify-content: space-between; gap: 1.2em; }
@@ -41,14 +42,14 @@ const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL
 const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
-const HEAD_COLOR = "#33d34a", TAIL_COLOR = "#e5383b";  // green head, red tail: easy to tell apart late in the game
-const INK = "#b4b9a8", INK_LIGHT = "#e2e6d6";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
-const EDGE_COLOR = "#3c4036";  // thin dark outline along the sides of the body
+const HEAD_COLOR = "#e4ffec", TAIL_COLOR = "#1a9e42", FOOD = "#4dff7d";  // all green: head = brightest, tail = dimmest, so they stay easy to tell apart
+const INK = "#1fae4b", INK_LIGHT = "#5cff8c";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
+const EDGE_COLOR = "#03240d";  // thin dark outline along the sides of the body
 const STRIPE = 10;  // block length: STRIPE light cells, STRIPE dark cells, repeating from the head
 const SAVE_KEY = "snakeClassic.v1.slot" + SLOT;
 const REPLAYS = window.REPLAYS_WINS || window.REPLAYS;
 const $ = id => document.getElementById(id);
-if (!REPLAYS || !REPLAYS.length) { document.body.style.color = "#fff"; document.body.textContent = "replays_wins.js not found"; return; }
+if (!REPLAYS || !REPLAYS.length) { document.body.style.color = "#4dff7d"; document.body.textContent = "replays_wins.js not found"; return; }
 
 /* ------------------------------------------------------------ game state (replayed from recorded moves) */
 let G = null, TL = null, dirty = true, blinkOn = true, draws = 0;
@@ -126,7 +127,7 @@ function draw() {
   ctx.strokeStyle = INK; ctx.lineWidth = lw;
   ctx.strokeRect(ox - pad, oy - pad, W * cell + 2 * pad, H * cell + 2 * pad);
   const g = Math.max(1, Math.round(cell * 0.07)), edge = Math.max(2, Math.round(cell * 0.12));
-  ctx.fillStyle = INK;
+  ctx.fillStyle = FOOD;
   if (blinkOn) {
     const n = G.body.length;
     const at = new Map(); G.body.forEach((c, i) => at.set(c[1] * W + c[0], i));  // cell -> index along the body
@@ -165,7 +166,7 @@ function draw() {
     drawTri(G.body[0], hd, HEAD_COLOR, g);
     const t = G.body[n - 1], u = G.body[n - 2];
     drawTri(t, DX.findIndex((v, k) => v === t[0] - u[0] && DY[k] === t[1] - u[1]), TAIL_COLOR, g);
-    ctx.fillStyle = INK;
+    ctx.fillStyle = FOOD;
   }
   if (G.food) { const f = Math.max(g + 1, Math.round(cell * 0.28)); ctx.fillRect(ox + G.food[0] * cell + f, oy + G.food[1] * cell + f, cell - 2 * f, cell - 2 * f); }
 }
