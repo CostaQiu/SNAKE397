@@ -127,12 +127,14 @@ function drawHalfCircle(cellXY, dir, color, g) {  // small half-disc: flat side 
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.arc(cx, cy, r, a - Math.PI / 2, a + Math.PI / 2); ctx.closePath(); ctx.fill();
 }
-function drawApple(c) {  // red apple: two lobes + a round bottom, a brown stem and a green leaf
-  const u = cell, cx = ox + c[0] * u + u / 2, cy = oy + c[1] * u + u * 0.56;
-  ctx.fillStyle = APPLE_RED;
-  for (const [dx, dy, r] of [[-0.13, -0.02, 0.27], [0.13, -0.02, 0.27], [0, 0.05, 0.3]]) { ctx.beginPath(); ctx.arc(cx + dx * u, cy + dy * u, r * u, 0, 6.2832); ctx.fill(); }
-  ctx.fillStyle = APPLE_STEM; ctx.fillRect(cx - 0.035 * u, cy - 0.36 * u, 0.07 * u, 0.17 * u);
-  ctx.fillStyle = APPLE_LEAF; ctx.beginPath(); ctx.ellipse(cx + 0.14 * u, cy - 0.3 * u, 0.13 * u, 0.065 * u, -0.5, 0, 6.2832); ctx.fill();
+function drawApple(c) {  // red apple: round body with a dent at the top, brown stem, green leaf, small highlight
+  const u = cell, cx = ox + c[0] * u + u / 2, cy = oy + c[1] * u + u * 0.58;
+  const disc = (x, y, r, color) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(cx + x * u, cy + y * u, r * u, 0, 6.2832); ctx.fill(); };
+  disc(0, 0, 0.3, APPLE_RED);
+  disc(0, -0.29, 0.07, "#000");                      // the dent where the stem sits
+  ctx.fillStyle = APPLE_STEM; ctx.fillRect(cx - 0.03 * u, cy - 0.4 * u, 0.06 * u, 0.15 * u);
+  ctx.fillStyle = APPLE_LEAF; ctx.beginPath(); ctx.ellipse(cx + 0.14 * u, cy - 0.37 * u, 0.12 * u, 0.06 * u, -0.45, 0, 6.2832); ctx.fill();
+  disc(-0.12, -0.08, 0.06, "#ff9a9a");               // highlight
 }
 function draw() {
   draws++;

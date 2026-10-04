@@ -7,9 +7,9 @@ plus two ways to watch it: a **3D cartoon viewer** in the browser and a real **W
 
 *A whole 397-point game as a time-lapse (about 26,000 steps). Rendered by `make_gif.py` from a recorded game.*
 
-| Screensaver (classic 2D) | 3D viewer |
+| Screensaver: classic (green retro monitor) | Screensaver: cartoon (3D) |
 |---|---|
-| ![classic screensaver](docs/classic_screensaver.png) | ![3D viewer](docs/3d_screensaver_preview.png) |
+| ![classic screensaver](docs/classic_screensaver.png) | ![cartoon screensaver](docs/cartoon_screensaver.png) |
 
 **中文简介：** 用强化学习（DQN）+ 搜索训练的贪吃蛇 AI，能吃满 20×20 棋盘的 397 分。
 可以在浏览器里看 3D 卡通回放，也可以当作 Windows 屏保（多块屏幕同步、一键安装、**不需要 Python**）。
@@ -28,11 +28,16 @@ plus two ways to watch it: a **3D cartoon viewer** in the browser and a real **W
 ## Install the screensaver (Windows, no Python needed)
 
 1. Download the repository (green **Code** button, then *Download ZIP*) and unzip it.
-2. Double-click `install_screensaver.bat` (or run `install_screensaver.bat 10` for a 10-minute idle time; the default is 5).
-   It copies three files to `%LOCALAPPDATA%\SnakeSaver\app` and sets the screensaver in your user registry. No admin rights.
-3. Preview at once: `%LOCALAPPDATA%\SnakeSaver\app\SnakeSaver.scr /s`. Any key press or mouse move quits it.
+2. Double-click `install_screensaver.bat` (classic look, 5 idle minutes). Options: `install_screensaver.bat 10 cartoon` means 10 idle minutes and the 3D cartoon look.
+   It copies the files to `%LOCALAPPDATA%\SnakeSaver\app` and sets the screensaver in your user registry. No admin rights.
+   Both screensavers are installed; the second argument only picks the active one. Switch later in the Windows screensaver settings ("SnakeSaver" = classic, "SnakeCartoon" = cartoon).
+3. Preview at once: `%LOCALAPPDATA%\SnakeSaver\app\SnakeSaver.scr /s` (or `SnakeCartoon.scr /s`). Any key press or mouse move quits it.
 4. Change the idle time or switch it off in *Settings > Personalization > Lock screen > Screen saver*.
 5. Remove everything with `uninstall_screensaver.bat`.
+
+**Two looks, same engine.** `SnakeSaver.scr` is the classic green retro-monitor page (`snake_classic.html`, fully offline).
+`SnakeCartoon.scr` is the 3D cartoon page (`snake3d.html`, three.js loaded from a CDN, so it needs internet access). Both are built from the same
+`screensaver/SnakeSaver.cs`; the launcher picks the page from its own file name. In both, the body alternates **10 light / 10 dark cells counted from the head**.
 
 What it does:
 

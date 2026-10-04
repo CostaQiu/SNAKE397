@@ -16,15 +16,22 @@ using System.Windows.Forms;
 
 static class SnakeSaver
 {
+    // The file name picks the look: SnakeCartoon.scr shows the 3D cartoon page, anything else the classic green page.
+    static bool Cartoon
+    {
+        get { return Path.GetFileNameWithoutExtension(Process.GetCurrentProcess().MainModule.FileName).IndexOf("Cartoon", StringComparison.OrdinalIgnoreCase) >= 0; }
+    }
+    static string PageName { get { return Cartoon ? "snake3d.html" : "snake_classic.html"; } }
+
     // Page + replays are looked up next to the .scr first (so a copied folder works anywhere); the compiled-in path is the fallback.
     static string ProjectDir
     {
         get
         {
             string here = AppDomain.CurrentDomain.BaseDirectory;
-            if (File.Exists(Path.Combine(here, "snake_classic.html"))) return here;      // installed copy: all files in one folder
+            if (File.Exists(Path.Combine(here, PageName))) return here;      // installed copy: all files in one folder
             string up = Path.GetFullPath(Path.Combine(here, ".."));
-            if (File.Exists(Path.Combine(up, "snake_classic.html"))) return up;          // repo / zip layout: the .scr sits in a subfolder
+            if (File.Exists(Path.Combine(up, PageName))) return up;          // repo / zip layout: the .scr sits in a subfolder
             return @"@PROJECT_DIR@";
         }
     }
@@ -167,7 +174,7 @@ static class SnakeSaver
         if (mode == 'p') return 0;
         if (mode != 's')
         {
-            MessageBox.Show("Snake screensaver (classic 2D snake, perfect 397-point games).\nThere is nothing to configure here.\nChange the idle time in Windows Settings > Personalization > Lock screen > Screen saver.",
+            MessageBox.Show("Snake screensaver (perfect 397-point games).\nThere is nothing to configure here.\nChange the idle time in Windows Settings > Personalization > Lock screen > Screen saver.",
                 "Snake Screensaver", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 0;
         }
@@ -185,7 +192,7 @@ static class SnakeSaver
 
             string edge = FindEdge();
             if (edge == null) { MessageBox.Show("Microsoft Edge was not found.", "Snake Screensaver"); return 1; }
-            string pageFile = Path.Combine(ProjectDir, "snake_classic.html");
+            string pageFile = Path.Combine(ProjectDir, PageName);
             if (!File.Exists(pageFile)) { MessageBox.Show("Missing file: " + pageFile, "Snake Screensaver"); return 1; }
 
             // left-to-right order keeps each screen's saved progress attached to the same physical position
@@ -204,6 +211,7 @@ static class SnakeSaver
                 string profile = Path.Combine(profiles, "slot" + i);
                 Directory.CreateDirectory(profile);
                 string url = new Uri(pageFile).AbsoluteUri + "#saver&host=scr&slot=" + i;
+                if (Cartoon) url += "&sps=16";             // same 2x speed as the classic page
                 string extra = Environment.GetEnvironmentVariable("SNAKESAVER_EXTRA");  // test hook, e.g. "&fps=0&pr=0"
                 if (!string.IsNullOrEmpty(extra)) url += extra;
                 url += "&t0=" + t0Ms;                       // shared clock: all screens show the same frame

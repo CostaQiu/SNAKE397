@@ -366,7 +366,9 @@ bodyMesh.castShadow = true; bodyMesh.frustumCulled = false; bodyInk.frustumCulle
 (function colorBody() {
   const c = new THREE.Color();
   for (let i = 0; i < MAXSEG; i++) {
-    const hue = (165 + (i / MAXSEG) * 130) / 360, light = 0.58 + (Math.floor(i / 3) % 2) * 0.07;
+    // body cells counted from the head alternate in blocks of 10 light / 10 dark (same rhythm as the classic screensaver),
+    // so the eye can follow the body without it turning into a flickering marquee; the hue still drifts slowly along the body
+    const hue = (165 + (i / MAXSEG) * 130) / 360, light = Math.floor(i / 10) % 2 === 0 ? 0.74 : 0.5;
     c.setHSL(hue, 0.75, light);
     bodyMesh.setColorAt(i * 2, c); bodyMesh.setColorAt(i * 2 + 1, c);
   }

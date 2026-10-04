@@ -83,12 +83,17 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
         cx, cy = ox + t[0] * cell + mid - DX[td] * (mid - g), oy + t[1] * cell + mid - DY[td] * (mid - g)
         ang = {1: 0, 2: 90, 3: 180, 0: 270}[td]
         d.pieslice([cx - r, cy - r, cx + r, cy + r], ang - 90, ang + 90, fill=TAIL)
-    if food:  # red apple: two lobes + round bottom, brown stem, green leaf
-        cx, cy = ox + food[0] * cell + cell / 2, oy + food[1] * cell + cell * 0.56
-        for dx, dy, r in ((-0.13, -0.02, 0.27), (0.13, -0.02, 0.27), (0, 0.05, 0.3)):
-            d.ellipse([cx + (dx - r) * cell, cy + (dy - r) * cell, cx + (dx + r) * cell, cy + (dy + r) * cell], fill=(255, 48, 48))
-        d.rectangle([cx - 0.035 * cell, cy - 0.36 * cell, cx + 0.035 * cell, cy - 0.19 * cell], fill=(168, 116, 60))
-        d.ellipse([cx + 0.01 * cell, cy - 0.365 * cell, cx + 0.27 * cell, cy - 0.235 * cell], fill=PHOS)
+    if food:  # red apple: round body, dent at the top, brown stem, green leaf, highlight
+        cx, cy = ox + food[0] * cell + cell / 2, oy + food[1] * cell + cell * 0.58
+
+        def disc(x, y, r, color):
+            d.ellipse([cx + (x - r) * cell, cy + (y - r) * cell, cx + (x + r) * cell, cy + (y + r) * cell], fill=color)
+
+        disc(0, 0, 0.3, (255, 48, 48))
+        disc(0, -0.29, 0.07, (0, 0, 0))
+        d.rectangle([cx - 0.03 * cell, cy - 0.4 * cell, cx + 0.03 * cell, cy - 0.25 * cell], fill=(168, 116, 60))
+        d.ellipse([cx + 0.02 * cell, cy - 0.43 * cell, cx + 0.26 * cell, cy - 0.31 * cell], fill=PHOS)
+        disc(-0.12, -0.08, 0.06, (255, 154, 154))
     free = (w - h * 0.92) / 2
     big, small = fonts
     d.text(
