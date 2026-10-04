@@ -22,7 +22,10 @@ static class SnakeSaver
         get
         {
             string here = AppDomain.CurrentDomain.BaseDirectory;
-            return File.Exists(Path.Combine(here, "snake_classic.html")) ? here : @"@PROJECT_DIR@";
+            if (File.Exists(Path.Combine(here, "snake_classic.html"))) return here;      // installed copy: all files in one folder
+            string up = Path.GetFullPath(Path.Combine(here, ".."));
+            if (File.Exists(Path.Combine(up, "snake_classic.html"))) return up;          // repo / zip layout: the .scr sits in a subfolder
+            return @"@PROJECT_DIR@";
         }
     }
 
