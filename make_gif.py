@@ -48,7 +48,7 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
     g = max(1, round(cell * 0.07))
     if blink_on:
         for i, (x, y) in enumerate(body[1:-1], start=1):
-            shade = INK_LIGHT if i % 3 == 0 else INK  # every 3rd cell from the head is lighter, as in the page
+            shade = INK_LIGHT if (i // 5) % 2 == 0 else INK  # blocks of 5 light / 5 dark counted from the head, as in the page
             d.rectangle(
                 [
                     ox + x * cell + g,
