@@ -11,7 +11,7 @@ DX, DY = [0, 1, 0, -1], [-1, 0, 1, 0]
 W = H = 20
 INK_LIGHT = (226, 230, 214)
 INK, HEAD, TAIL = (180, 185, 168), (51, 211, 74), (229, 56, 59)
-SPS = 16  # steps per second shown by the screensaver
+SPS = 8  # steps per second shown by the screensaver
 
 
 def load_replays(path):
@@ -48,7 +48,7 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
     g = max(1, round(cell * 0.07))
     if blink_on:
         for i, (x, y) in enumerate(body[1:-1], start=1):
-            shade = INK_LIGHT if (i // 5) % 2 == 0 else INK  # blocks of 5 light / 5 dark counted from the head, as in the page
+            shade = INK_LIGHT if (i // 7) % 2 == 0 else INK  # blocks of 7 light / 7 dark counted from the head, as in the page
             d.rectangle(
                 [
                     ox + x * cell + g,

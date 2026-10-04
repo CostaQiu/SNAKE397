@@ -37,13 +37,13 @@
 const W = 20, H = 20, DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];
 const hash = location.hash;
 const Q = (k, d) => { const m = hash.match(new RegExp("[#&]" + k + "=([0-9]+)")); return m ? +m[1] : d; };
-const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL_T0 = Q("t0", 0), SPS = Q("sps", 16);
+const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL_T0 = Q("t0", 0), SPS = Q("sps", 8);
 const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
 const HEAD_COLOR = "#33d34a", TAIL_COLOR = "#e5383b";  // green head, red tail: easy to tell apart late in the game
 const INK = "#b4b9a8", INK_LIGHT = "#e2e6d6";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
-const STRIPE = 5;  // old Nokia-style LCD grey (numbers stay white)
+const STRIPE = 7;  // block length: STRIPE light cells, STRIPE dark cells, repeating from the head
 const SAVE_KEY = "snakeClassic.v1.slot" + SLOT;
 const REPLAYS = window.REPLAYS_WINS || window.REPLAYS;
 const $ = id => document.getElementById(id);
