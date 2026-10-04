@@ -38,7 +38,7 @@ plus two ways to watch it: a **3D cartoon viewer** in the browser and a real **W
 **Two looks, same engine.** `SnakeSaver.scr` shows the classic green retro-monitor page (`snake_classic.html`). `cartoon_screensaver/SnakeCartoon.scr`
 shows the cartoon page (`cartoon_screensaver/snake_cartoon.html`). Both are plain 2D canvas, fully offline, and built from the same
 `screensaver/SnakeSaver.cs`; the launcher picks the page from its own file name. The numbers (SCORE / STEPS / GAME TIME and the clock) are the same in both.
-In both, the body is coloured in blocks of **10 cells counted from the head** (classic: light/dark green, cartoon: four colours), so the body
+In both, the body is coloured in blocks of cells counted from the head (classic: 10 light / 10 dark green, cartoon: three colours, 15 cells each), so the body
 reads as flowing instead of flickering like a marquee.
 
 **Share it:** `python package_zips.py` builds `dist/SnakeScreensaver-classic.zip` and `dist/SnakeScreensaver-cartoon.zip` (`python package_zips.py cartoon` for one). Friends unzip and double-click the install script.
@@ -49,7 +49,7 @@ What it does:
 - Classic look: black background, green-phosphor look (everything green on black), light and dark body blocks, a bright-green triangle head and a small half-circle tail, a red apple as the food, SCORE / STEPS / GAME TIME and a clock.
   Constant 16 steps per second (2x), no smoothing.
 - Cartoon look (`cartoon_screensaver/`): sky-blue background with clouds, wooden frame, checkered lawn, a round green head with eyes that look where it is going, a tapered tail,
-  four body colours (mint, sky blue, violet, amber) in blocks of 10 cells, an outlined apple. Light on the GPU: the background is painted once, the snake layer is only
+  three body colours (mint, sky blue, violet) in blocks of 15 cells, an outlined apple. Light on the GPU: the background is painted once, the snake layer is only
   repainted when something changes, and the canvas runs at CSS-pixel resolution.
 - Only the primary monitor makes sound (square-wave blips). Any input quits it and cleans up every process it started.
 - Progress is saved in `%LOCALAPPDATA%\SnakeSaver\progress.txt`, so the game continues next time instead of restarting.

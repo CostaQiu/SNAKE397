@@ -45,7 +45,7 @@ Settings:  Settings > Personalization > Lock screen > Screen saver
 Remove:    double-click uninstall_cartoon.bat
 
 It replays recorded perfect games (397 points) of a snake AI, one full-screen window per monitor, all monitors in sync.
-Plain 2D drawing (no 3D, no internet), kept light on the graphics card. The body has four colours in blocks of 10 cells.
+Plain 2D drawing (no 3D, no internet), kept light on the graphics card. The body has three colours in blocks of 15 cells.
 Needs Microsoft Edge (already part of Windows). SmartScreen may warn about SnakeCartoon.scr because it is not code-signed.
 Source code: https://github.com/CostaQiu/SNAKE397
 
@@ -56,7 +56,7 @@ Source code: https://github.com/CostaQiu/SNAKE397
 修改/关闭：设置 > 个性化 > 锁屏界面 > 屏幕保护程序
 卸载：双击 uninstall_cartoon.bat
 内容：回放贪吃蛇 AI 录制的 397 分满分对局，多块显示器同步显示。2D 卡通画面，不用 3D、不用联网，尽量减轻显卡压力；
-蛇身 4 种颜色，每种连续 10 格。需要 Edge 浏览器（Windows 自带），不需要 Python，也不需要显卡。
+蛇身 3 种颜色，每种连续 15 格。需要 Edge 浏览器（Windows 自带），不需要 Python，也不需要显卡。
 因为没有代码签名，Windows 可能弹出 SmartScreen 警告。
 """
 

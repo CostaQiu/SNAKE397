@@ -44,8 +44,8 @@ const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCrt";          // the launcher reads "<TAG> slot= seed= step=" from the window title
 const INK = "#3a2750";                                   // outlines and numbers
-const BODY_COLORS = ["#5eead4", "#38bdf8", "#a78bfa", "#fbbf24"];  // exactly four body colours, in blocks of STRIPE cells counted from the head
-const STRIPE = 10;       // block length: 10 cells of one colour, then the next colour, repeating after the 4th
+const BODY_COLORS = ["#5eead4", "#38bdf8", "#a78bfa"];  // exactly three body colours, in blocks of STRIPE cells counted from the head
+const STRIPE = 15;       // block length: 15 cells of one colour, then the next colour, repeating after the 3rd
 const HEAD_COLOR = "#34d058", APPLE_RED = "#ff4d5a", APPLE_STEM = "#8a5a32", APPLE_LEAF = "#4cd964";
 const SAVE_KEY = "snakeCartoon.v1.slot" + SLOT;
 const REPLAYS = window.REPLAYS_WINS || window.REPLAYS;
@@ -161,7 +161,7 @@ function draw() {
       ctx.strokeStyle = INK; ctx.lineWidth = wid(i) + u * 0.14;
       ctx.beginPath(); ctx.moveTo(pts[i][0], pts[i][1]); ctx.lineTo(pts[i + 1][0], pts[i + 1][1]); ctx.stroke();
     }
-    for (let i = n - 2; i >= 0; i--) {  // colour pass: block k of STRIPE cells from the head gets colour k mod 4
+    for (let i = n - 2; i >= 0; i--) {  // colour pass: block k of STRIPE cells from the head gets colour k mod 3
       ctx.strokeStyle = BODY_COLORS[Math.floor(i / STRIPE) % BODY_COLORS.length]; ctx.lineWidth = wid(i);
       ctx.beginPath(); ctx.moveTo(pts[i][0], pts[i][1]); ctx.lineTo(pts[i + 1][0], pts[i + 1][1]); ctx.stroke();
     }
