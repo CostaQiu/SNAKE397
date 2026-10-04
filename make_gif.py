@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = Path(__file__).resolve().parent
 DX, DY = [0, 1, 0, -1], [-1, 0, 1, 0]
 W = H = 20
+INK_LIGHT = (226, 230, 214)
 INK, HEAD, TAIL = (180, 185, 168), (51, 211, 74), (229, 56, 59)
 SPS = 16  # steps per second shown by the screensaver
 
@@ -46,7 +47,8 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
     )
     g = max(1, round(cell * 0.07))
     if blink_on:
-        for x, y in body[1:-1]:
+        for i, (x, y) in enumerate(body[1:-1], start=1):
+            shade = INK_LIGHT if game["_ids"][i] % 3 == 0 else INK  # every 3rd segment lighter, as in the page
             d.rectangle(
                 [
                     ox + x * cell + g,
@@ -54,7 +56,7 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
                     ox + (x + 1) * cell - g - 1,
                     oy + (y + 1) * cell - g - 1,
                 ],
-                fill=INK,
+                fill=shade,
             )
         hd = game["moves"][step - 1] if step > 0 else 1
         tri(d, ox + body[0][0] * cell, oy + body[0][1] * cell, cell, int(hd), HEAD, g)
@@ -108,6 +110,7 @@ def main():
     game["moves"] = moves
     stride = max(1, len(moves) // a.frames)
     body, foods, score = [tuple(c) for c in game["start"]], game["foods"], 0
+    game["_ids"] = [-i for i in range(len(body))]
     fi, food, frames = 0, foods[0], []
     for step in range(len(moves) + 1):
         if step % stride == 0 or step == len(moves):
@@ -118,8 +121,10 @@ def main():
         nh = (body[0][0] + DX[d], body[0][1] + DY[d])
         eat = food is not None and nh == tuple(food)
         body.insert(0, nh)
+        game["_ids"].insert(0, step)
         if not eat:
             body.pop()
+            game["_ids"].pop()
         else:
             score, fi = score + 1, fi + 1
             food = foods[fi] if fi < len(foods) else None

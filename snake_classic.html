@@ -42,7 +42,8 @@ const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
 const HEAD_COLOR = "#33d34a", TAIL_COLOR = "#e5383b";  // green head, red tail: easy to tell apart late in the game
-const INK = "#b4b9a8";  // old Nokia-style LCD grey (numbers stay white)
+const INK = "#b4b9a8", INK_LIGHT = "#e2e6d6";  // every 3rd body segment is lighter, so the eye can follow the body sliding along
+const STRIPE = 3;  // old Nokia-style LCD grey (numbers stay white)
 const SAVE_KEY = "snakeClassic.v1.slot" + SLOT;
 const REPLAYS = window.REPLAYS_WINS || window.REPLAYS;
 const $ = id => document.getElementById(id);
@@ -52,15 +53,15 @@ if (!REPLAYS || !REPLAYS.length) { document.body.style.color = "#fff"; document.
 let G = null, TL = null, dirty = true, blinkOn = true, draws = 0;
 function startGame(gi) {
   const r = REPLAYS[gi];
-  G = { r, body: r.start.map(c => c.slice()), step: 0, foodIdx: 0, food: r.foods[0], score: 0, finished: false };
+  G = { r, body: r.start.map(c => c.slice()), ids: r.start.map((c, i) => -i), step: 0, foodIdx: 0, food: r.foods[0], score: 0, finished: false };
   dirty = true;
 }
 function simStep(quiet) {
   if (G.step >= G.r.moves.length) return false;
   const d = +G.r.moves[G.step], h = G.body[0], nh = [h[0] + DX[d], h[1] + DY[d]];
   const eating = G.food && nh[0] === G.food[0] && nh[1] === G.food[1];
-  G.body.unshift(nh);
-  if (!eating) G.body.pop();
+  G.body.unshift(nh); G.ids.unshift(G.step);  // a segment keeps the id of the step that created it, so its shade travels with it
+  if (!eating) { G.body.pop(); G.ids.pop(); }
   G.step++;
   if (eating) { G.score++; G.foodIdx++; G.food = G.r.foods[G.foodIdx] || null; if (!quiet) sfxEat(G.score); }
   if (G.step >= G.r.moves.length) { G.finished = true; if (!quiet) sfxWin(); }
@@ -127,7 +128,10 @@ function draw() {
   ctx.fillStyle = INK;
   if (blinkOn) {
     const n = G.body.length;
-    for (let i = 1; i < n - 1; i++) { const [x, y] = G.body[i]; ctx.fillRect(ox + x * cell + g, oy + y * cell + g, cell - 2 * g, cell - 2 * g); }
+    for (let i = 1; i < n - 1; i++) {
+      const [x, y] = G.body[i];
+      ctx.fillStyle = ((G.ids[i] % STRIPE) + STRIPE) % STRIPE === 0 ? INK_LIGHT : INK;
+      ctx.fillRect(ox + x * cell + g, oy + y * cell + g, cell - 2 * g, cell - 2 * g); }
     // head: green triangle pointing the way the snake is going; tail: red triangle pointing away from the body
     const hd = G.step > 0 ? +G.r.moves[G.step - 1] : headingFromStart();
     drawTri(G.body[0], hd, HEAD_COLOR, g);
