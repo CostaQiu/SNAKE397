@@ -11,7 +11,7 @@ DX, DY = [0, 1, 0, -1], [-1, 0, 1, 0]
 W = H = 20
 INK_LIGHT = (92, 255, 140)
 EDGE = (3, 36, 13)
-INK, HEAD, TAIL = (31, 174, 75), (228, 255, 236), (62, 230, 115)  # green phosphor palette
+INK, HEAD, TAIL = (31, 174, 75), (0, 255, 42), (62, 230, 115)  # green phosphor palette
 FOOD = PHOS = (77, 255, 125)
 SPS = 8  # steps per second shown by the screensaver
 

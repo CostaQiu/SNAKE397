@@ -42,7 +42,7 @@ const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL
 const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
-const HEAD_COLOR = "#e4ffec", TAIL_COLOR = "#3ee673", FOOD = "#4dff7d";
+const HEAD_COLOR = "#00ff2a", TAIL_COLOR = "#3ee673", FOOD = "#4dff7d";
 const APPLE_RED = "#ff3030", APPLE_STEM = "#a8743c", APPLE_LEAF = "#4dff7d";  // all green; the head is a triangle, the tail a small half-circle, so they stay easy to tell apart
 const INK = "#1fae4b", INK_LIGHT = "#5cff8c";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
 const EDGE_COLOR = "#03240d";  // thin dark outline along the sides of the body
