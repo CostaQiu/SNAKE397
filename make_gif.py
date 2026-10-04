@@ -83,17 +83,12 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
         cx, cy = ox + t[0] * cell + mid - DX[td] * (mid - g), oy + t[1] * cell + mid - DY[td] * (mid - g)
         ang = {1: 0, 2: 90, 3: 180, 0: 270}[td]
         d.pieslice([cx - r, cy - r, cx + r, cy + r], ang - 90, ang + 90, fill=TAIL)
-    if food:
-        f = max(g + 1, round(cell * 0.28))
-        d.rectangle(
-            [
-                ox + food[0] * cell + f,
-                oy + food[1] * cell + f,
-                ox + (food[0] + 1) * cell - f - 1,
-                oy + (food[1] + 1) * cell - f - 1,
-            ],
-            fill=FOOD,
-        )
+    if food:  # red apple: two lobes + round bottom, brown stem, green leaf
+        cx, cy = ox + food[0] * cell + cell / 2, oy + food[1] * cell + cell * 0.56
+        for dx, dy, r in ((-0.13, -0.02, 0.27), (0.13, -0.02, 0.27), (0, 0.05, 0.3)):
+            d.ellipse([cx + (dx - r) * cell, cy + (dy - r) * cell, cx + (dx + r) * cell, cy + (dy + r) * cell], fill=(255, 48, 48))
+        d.rectangle([cx - 0.035 * cell, cy - 0.36 * cell, cx + 0.035 * cell, cy - 0.19 * cell], fill=(168, 116, 60))
+        d.ellipse([cx + 0.01 * cell, cy - 0.365 * cell, cx + 0.27 * cell, cy - 0.235 * cell], fill=PHOS)
     free = (w - h * 0.92) / 2
     big, small = fonts
     d.text(

@@ -42,7 +42,8 @@ const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL
 const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
-const HEAD_COLOR = "#e4ffec", TAIL_COLOR = "#3ee673", FOOD = "#4dff7d";  // all green; the head is a triangle, the tail a small half-circle, so they stay easy to tell apart
+const HEAD_COLOR = "#e4ffec", TAIL_COLOR = "#3ee673", FOOD = "#4dff7d";
+const APPLE_RED = "#ff3030", APPLE_STEM = "#a8743c", APPLE_LEAF = "#4dff7d";  // all green; the head is a triangle, the tail a small half-circle, so they stay easy to tell apart
 const INK = "#1fae4b", INK_LIGHT = "#5cff8c";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
 const EDGE_COLOR = "#03240d";  // thin dark outline along the sides of the body
 const STRIPE = 10;  // block length: STRIPE light cells, STRIPE dark cells, repeating from the head
@@ -126,6 +127,13 @@ function drawHalfCircle(cellXY, dir, color, g) {  // small half-disc: flat side 
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.arc(cx, cy, r, a - Math.PI / 2, a + Math.PI / 2); ctx.closePath(); ctx.fill();
 }
+function drawApple(c) {  // red apple: two lobes + a round bottom, a brown stem and a green leaf
+  const u = cell, cx = ox + c[0] * u + u / 2, cy = oy + c[1] * u + u * 0.56;
+  ctx.fillStyle = APPLE_RED;
+  for (const [dx, dy, r] of [[-0.13, -0.02, 0.27], [0.13, -0.02, 0.27], [0, 0.05, 0.3]]) { ctx.beginPath(); ctx.arc(cx + dx * u, cy + dy * u, r * u, 0, 6.2832); ctx.fill(); }
+  ctx.fillStyle = APPLE_STEM; ctx.fillRect(cx - 0.035 * u, cy - 0.36 * u, 0.07 * u, 0.17 * u);
+  ctx.fillStyle = APPLE_LEAF; ctx.beginPath(); ctx.ellipse(cx + 0.14 * u, cy - 0.3 * u, 0.13 * u, 0.065 * u, -0.5, 0, 6.2832); ctx.fill();
+}
 function draw() {
   draws++;
   ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cv.width, cv.height);
@@ -174,7 +182,7 @@ function draw() {
     drawHalfCircle(t, DX.findIndex((v, k) => v === t[0] - u[0] && DY[k] === t[1] - u[1]), TAIL_COLOR, g);
     ctx.fillStyle = FOOD;
   }
-  if (G.food) { const f = Math.max(g + 1, Math.round(cell * 0.28)); ctx.fillRect(ox + G.food[0] * cell + f, oy + G.food[1] * cell + f, cell - 2 * f, cell - 2 * f); }
+  if (G.food) drawApple(G.food);
 }
 
 /* ------------------------------------------------------------ numbers in the empty space around the board */
