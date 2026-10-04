@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
+<title>Snake</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+  canvas { display: block; position: fixed; left: 0; top: 0; }
+  .txt { position: fixed; color: #fff; font-family: "Courier New", Consolas, monospace; line-height: 1.35; white-space: nowrap; }
+  .txt .time { font-size: 2.6em; font-weight: bold; letter-spacing: .04em; text-align: center; }
+  .txt .date { font-size: .8em; text-align: center; opacity: .8; }
+  .txt .row { display: flex; justify-content: space-between; gap: 1.2em; }
+  .txt .row span { opacity: .8; }
+  .txt.inline { display: flex; gap: 1.8em; justify-content: center; }
+  .txt.inline .row { display: inline-flex; gap: .5em; }
+  .txt.clockline { display: flex; align-items: baseline; gap: .9em; justify-content: center; }
+  .txt.clockline .time { font-size: 1.9em; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="clock" class="txt"><div class="time" id="time">--:--:--</div><div class="date" id="date"></div></div>
+<div id="stats" class="txt">
+  <div class="row"><span>SCORE</span><b id="score">0</b></div>
+  <div class="row"><span>STEPS</span><b id="steps">0</b></div>
+  <div class="row"><span>GAME TIME</span><b id="gtime">00:00:00</b></div>
+</div>
+<script src="replays_wins.js"></script>
+<script>
+(function () {
+"use strict";
+/* Classic Snake screensaver: black background, white snake, white numbers, plain 2D canvas.
+   The picture is a pure function of a shared clock (t0 in the URL), so several screens stay in lockstep,
+   and the canvas is only redrawn when something actually changes (a step, the clock, the end-of-game blink). */
+const W = 20, H = 20, DX = [0, 1, 0, -1], DY = [-1, 0, 1, 0];
+const hash = location.hash;
+const Q = (k, d) => { const m = hash.match(new RegExp("[#&]" + k + "=([0-9]+)")); return m ? +m[1] : d; };
+const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL_T0 = Q("t0", 0), SPS = Q("sps", 16);
+const HOST_SCR = /host=scr/.test(hash);
+const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
+const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
+const HEAD_COLOR = "#33d34a", TAIL_COLOR = "#e5383b";  // green head, red tail: easy to tell apart late in the game
+const INK = "#b4b9a8";  // old Nokia-style LCD grey (numbers stay white)
+const SAVE_KEY = "snakeClassic.v1.slot" + SLOT;
+const REPLAYS = window.REPLAYS_WINS || window.REPLAYS;
+const $ = id => document.getElementById(id);
+if (!REPLAYS || !REPLAYS.length) { document.body.style.color = "#fff"; document.body.textContent = "replays_wins.js not found"; return; }
+
+/* ------------------------------------------------------------ game state (replayed from recorded moves) */
+let G = null, TL = null, dirty = true, blinkOn = true, draws = 0;
+function startGame(gi) {
+  const r = REPLAYS[gi];
+  G = { r, body: r.start.map(c => c.slice()), step: 0, foodIdx: 0, food: r.foods[0], score: 0, finished: false };
+  dirty = true;
+}
+function simStep(quiet) {
+  if (G.step >= G.r.moves.length) return false;
+  const d = +G.r.moves[G.step], h = G.body[0], nh = [h[0] + DX[d], h[1] + DY[d]];
+  const eating = G.food && nh[0] === G.food[0] && nh[1] === G.food[1];
+  G.body.unshift(nh);
+  if (!eating) G.body.pop();
+  G.step++;
+  if (eating) { G.score++; G.foodIdx++; G.food = G.r.foods[G.foodIdx] || null; if (!quiet) sfxEat(G.score); }
+  if (G.step >= G.r.moves.length) { G.finished = true; if (!quiet) sfxWin(); }
+  dirty = true;
+  return true;
+}
+function tick(nowMs) {
+  for (let n = 0; n < 3; n++) {
+    const moves = G.r.moves.length;
+    const target = TL.base + Math.max(0, (nowMs - TL.t0) / 1000) * SPS;
+    if (target >= moves) {
+      const finishMs = TL.t0 + (moves - TL.base) / SPS * 1000;
+      if (nowMs - finishMs > 8000) {  // 8 s of blinking, then the next perfect game (same on every screen)
+        TL = { gi: (TL.gi + 1) % REPLAYS.length, base: 0, t0: finishMs + 8000 };
+        startGame(TL.gi);
+        continue;
+      }
+      while (!G.finished) { if (!simStep(G.step < moves - 3)) break; }
+      const on = Math.floor((nowMs - finishMs) / 500) % 2 === 0;  // blink the snake at 1 Hz after the last apple
+      if (on !== blinkOn) { blinkOn = on; dirty = true; }
+      return;
+    }
+    blinkOn = true;
+    const targetStep = Math.floor(target);
+    while (G.step < targetStep && !G.finished) { if (!simStep(G.step < targetStep - 3)) break; }  // quiet while catching up
+    return;
+  }
+}
+
+/* ------------------------------------------------------------ drawing */
+const cv = $("c"), ctx = cv.getContext("2d");
+let cell = 10, ox = 0, oy = 0, dpr = 1;
+function layout() {
+  dpr = window.devicePixelRatio || 1;
+  const w = innerWidth, h = innerHeight;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  cv.style.width = w + "px"; cv.style.height = h + "px";
+  const sideDev = Math.min(cv.width, cv.height) * 0.92;
+  cell = Math.max(4, Math.floor(sideDev / W));                       // whole device pixels: crisp squares
+  ox = Math.floor((cv.width - W * cell) / 2); oy = Math.floor((cv.height - H * cell) / 2);
+  layoutInfo();
+  dirty = true;
+}
+function headingFromStart() {  // direction of the opening snake, before the first move
+  const a = G.r.start[0], b = G.r.start[1];
+  return DX.findIndex((v, k) => v === a[0] - b[0] && DY[k] === a[1] - b[1]);
+}
+function drawTri(cellXY, dir, color, g) {
+  const x0 = ox + cellXY[0] * cell, y0 = oy + cellXY[1] * cell, lo = g, hi = cell - g, mid = cell / 2;
+  const tri = [[[mid, lo], [lo, hi], [hi, hi]],   // up
+               [[hi, mid], [lo, lo], [lo, hi]],   // right
+               [[mid, hi], [lo, lo], [hi, lo]],   // down
+               [[lo, mid], [hi, lo], [hi, hi]]][dir < 0 ? 0 : dir];  // left
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.moveTo(x0 + tri[0][0], y0 + tri[0][1]); ctx.lineTo(x0 + tri[1][0], y0 + tri[1][1]); ctx.lineTo(x0 + tri[2][0], y0 + tri[2][1]); ctx.closePath(); ctx.fill();
+}
+function draw() {
+  draws++;
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cv.width, cv.height);
+  const lw = Math.max(2, Math.round(2 * dpr)), pad = Math.max(3, Math.round(cell * 0.35));
+  ctx.strokeStyle = INK; ctx.lineWidth = lw;
+  ctx.strokeRect(ox - pad, oy - pad, W * cell + 2 * pad, H * cell + 2 * pad);
+  const g = Math.max(1, Math.round(cell * 0.07));
+  ctx.fillStyle = INK;
+  if (blinkOn) {
+    const n = G.body.length;
+    for (let i = 1; i < n - 1; i++) { const [x, y] = G.body[i]; ctx.fillRect(ox + x * cell + g, oy + y * cell + g, cell - 2 * g, cell - 2 * g); }
+    // head: green triangle pointing the way the snake is going; tail: red triangle pointing away from the body
+    const hd = G.step > 0 ? +G.r.moves[G.step - 1] : headingFromStart();
+    drawTri(G.body[0], hd, HEAD_COLOR, g);
+    const t = G.body[n - 1], u = G.body[n - 2];
+    drawTri(t, DX.findIndex((v, k) => v === t[0] - u[0] && DY[k] === t[1] - u[1]), TAIL_COLOR, g);
+    ctx.fillStyle = INK;
+  }
+  if (G.food) { const f = Math.max(g + 1, Math.round(cell * 0.28)); ctx.fillRect(ox + G.food[0] * cell + f, oy + G.food[1] * cell + f, cell - 2 * f, cell - 2 * f); }
+}
+
+/* ------------------------------------------------------------ numbers in the empty space around the board */
+const pad2 = n => String(n).padStart(2, "0");
+const fmtHMS = sec => { sec = Math.max(0, Math.floor(sec)); return pad2(Math.floor(sec / 3600)) + ":" + pad2(Math.floor(sec % 3600 / 60)) + ":" + pad2(sec % 60); };
+function updateInfo() {
+  if (!G) return;
+  const d = new Date();
+  $("time").textContent = d.toLocaleTimeString("en-GB");
+  $("date").textContent = d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  $("score").textContent = G.score;
+  $("steps").textContent = G.step.toLocaleString();
+  $("gtime").textContent = fmtHMS(G.step / SPS);
+}
+function layoutInfo() {
+  const w = innerWidth, h = innerHeight, land = w >= h, free = (Math.max(w, h) - 0.92 * Math.min(w, h)) / 2;
+  const clock = $("clock"), stats = $("stats"), show = free >= 60;
+  clock.style.display = stats.style.display = show ? "" : "none";
+  if (!show) return;
+  // measure with the longest text that can ever appear, so nothing overflows later and widths never jump
+  const worst = { time: "88:88:88", date: "Wednesday, December 28, 2026", score: "397", steps: "31,593", gtime: "01:05:49" };
+  for (const id in worst) $(id).textContent = worst[id];
+  const reset = el => { el.style.left = el.style.right = el.style.top = el.style.bottom = "auto"; el.style.transform = "none"; el.style.maxWidth = "none"; };
+  reset(clock); reset(stats);
+  const overflow = () => stats.scrollWidth > stats.clientWidth + 1 || clock.scrollWidth > clock.clientWidth + 1;
+  if (land) {  // empty columns left and right of the board
+    const cw = free * 0.84, gap = free * 0.08;
+    let fs = free * 0.075;
+    clock.className = "txt"; stats.className = "txt";
+    for (let i = 0; i < 14; i++) {
+      for (const el of [clock, stats]) { el.style.width = cw + "px"; el.style.fontSize = fs + "px"; el.style.top = "50%"; el.style.transform = "translateY(-50%)"; }
+      if (!overflow()) break;
+      fs *= 0.93;
+    }
+    clock.style.left = gap + "px"; stats.style.right = gap + "px";
+  } else {     // empty strips above and below the board: single-line versions
+    let fs = Math.min(free * 0.3, w * 0.04);
+    clock.className = "txt clockline"; stats.className = "txt inline";
+    for (let i = 0; i < 20; i++) {
+      for (const el of [clock, stats]) { el.style.width = "auto"; el.style.maxWidth = w * 0.96 + "px"; el.style.fontSize = fs + "px"; el.style.left = "50%"; el.style.transform = "translateX(-50%)"; }
+      if (Math.max(clock.offsetHeight, stats.offsetHeight) <= free * 0.9 && !overflow()) break;
+      fs *= 0.93;
+    }
+    for (const el of [clock, stats]) el.style.width = el.offsetWidth + "px";  // freeze the width: digits changing must not move anything
+    clock.style.top = Math.max(2, (free - clock.offsetHeight) / 2) + "px";
+    stats.style.bottom = Math.max(2, (free - stats.offsetHeight) / 2) + "px";
+  }
+  updateInfo();  // replace the measuring text with the real values
+}
+
+/* ------------------------------------------------------------ sound: classic square-wave blips (one screen only) */
+let ac = null, master = null;
+function initAudio() {
+  try {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
+  } catch (e) { ac = null; }
+}
+function beep(freq, t, dur, vol) {
+  if (!ac) return;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = "square"; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+}
+function sfxEat() { if (!ac) return; const t = ac.currentTime; beep(880, t, 0.07, 0.16); beep(1320, t + 0.08, 0.1, 0.16); }
+function sfxWin() { if (!ac) return; const t = ac.currentTime; [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568].forEach((f, i) => beep(f, t + i * 0.11, 0.16, 0.16)); }
+function sfxStart() { if (!ac) return; const t = ac.currentTime; [523.25, 659.25, 783.99].forEach((f, i) => beep(f, t + i * 0.13, 0.14, 0.16)); }
+
+/* ------------------------------------------------------------ progress (browser fallback) and main loop */
+function saveProgress() { try { localStorage.setItem(SAVE_KEY, JSON.stringify({ seed: G.r.seed, step: G.step })); } catch (e) { /* no storage */ } }
+function loadProgress() { try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch (e) { return null; } }
+
+const saved = URL_SEED ? { seed: URL_SEED, step: URL_STEP } : loadProgress();
+let gi = 0, base = 0;  // every screen plays the same game
+if (saved) { const f = REPLAYS.findIndex(r => r.seed === saved.seed); if (f >= 0) { gi = f; base = saved.step; } }
+TL = { gi, base, t0: URL_T0 || Date.now() };
+startGame(gi);
+if (SOUND_ON) {
+  initAudio(); sfxStart();
+  for (const ev of ["pointerdown", "keydown"]) window.addEventListener(ev, () => { if (ac && ac.state === "suspended") ac.resume(); }, { once: true });
+}
+window.addEventListener("resize", layout);
+window.addEventListener("pagehide", saveProgress);
+layout();
+
+let lastTick = 0, lastInfo = 0, lastTitle = 0;
+function loop(ts) {
+  requestAnimationFrame(loop);
+  // check the clock on every display refresh so steps land on time (an even rhythm); drawing only happens when something changed
+  const nowMs = Date.now();
+  tick(nowMs);
+  if (ts - lastInfo > 250) { lastInfo = ts; updateInfo(); }
+  if (ts - lastTitle > 1000) {
+    lastTitle = ts; saveProgress();
+    document.title = TAG + " slot=" + SLOT + " seed=" + G.r.seed + " step=" + G.step + " audio=" + (ac ? ac.state : "off");  // read by the launcher
+  }
+  if (dirty) { dirty = false; draw(); updateInfo(); }  // numbers always match the picture, even right after a catch-up
+}
+requestAnimationFrame(loop);
+window.__classic = { get geom() { return { cell, ox, oy }; }, get G() { return G; }, get draws() { return draws; }, get TL() { return TL; }, simStep, startGame };
+})();
+</script>
+</body>
+</html>

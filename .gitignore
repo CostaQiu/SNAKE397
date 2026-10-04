@@ -1,0 +1,13 @@
+__pycache__/
+.pytest_cache/
+.claude/
+*.log
+*.done.flag
+cnn_dqn_model.pth
+rl_snake_v*.pth
+rl_train_log*.csv
+rl_search_*.txt
+snake3d_screenshot_*.png
+screensaver/_SnakeSaver.build.cs
+snake3d_screensaver_preview.png
+rl_snake_last.pth

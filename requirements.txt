@@ -1,0 +1,7 @@
+# Only needed for training / searching / recording. The screensaver and the viewers need none of this.
+numpy
+torch
+numba
+pygame
+pytest
+neat-python

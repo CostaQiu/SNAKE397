@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snake RL 训练看板</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #111; color: #eee; }
+  h1 { font-size: 18px; margin: 0 0 12px; }
+  .cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .card { background: #1c1c1c; border-radius: 8px; padding: 10px 16px; min-width: 120px; }
+  .card b { display: block; font-size: 24px; color: #4ade80; }
+  .card span { font-size: 12px; color: #999; }
+  canvas { background: #1c1c1c; border-radius: 8px; padding: 8px; max-height: 340px; }
+  #status { font-size: 12px; color: #999; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>Snake RL 训练看板 <small id="state"></small></h1>
+<div class="cards">
+  <div class="card"><b id="c_steps">-</b><span>训练步数</span></div>
+  <div class="card"><b id="c_eval">-</b><span>最近评估均分</span></div>
+  <div class="card"><b id="c_best">-</b><span>历史最佳均分</span></div>
+  <div class="card"><b id="c_max">-</b><span>历史单局最高</span></div>
+  <div class="card"><b id="c_min">-</b><span>已用分钟</span></div>
+</div>
+<canvas id="chart"></canvas>
+<div id="status"></div>
+<script>
+const chart = new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: { labels: [], datasets: [
+    { label: '评估均分', data: [], borderColor: '#4ade80', tension: .2 },
+    { label: '评估最高', data: [], borderColor: '#facc15', tension: .2 },
+    { label: '训练近100局均分', data: [], borderColor: '#60a5fa', tension: .2 },
+  ]},
+  options: { animation: false, scales: {
+    x: { title: { display: true, text: '步数' }, ticks: { color: '#999' } },
+    y: { title: { display: true, text: '分数' }, ticks: { color: '#999' } } },
+    plugins: { legend: { labels: { color: '#ddd' } } } }
+});
+const $ = id => document.getElementById(id);
+async function refresh() {
+  try {
+    const txt = await (await fetch('rl_train_log.csv?t=' + Date.now())).text();
+    const rows = txt.trim().split('\n').slice(1).map(l => l.split(',').map(Number)).filter(r => r.length >= 7);
+    if (rows.length) {
+      chart.data.labels = rows.map(r => r[0].toLocaleString());
+      chart.data.datasets[0].data = rows.map(r => r[4]);
+      chart.data.datasets[1].data = rows.map(r => r[5]);
+      chart.data.datasets[2].data = rows.map(r => r[3]);
+      chart.update();
+      const last = rows[rows.length - 1];
+      $('c_steps').textContent = last[0].toLocaleString();
+      $('c_eval').textContent = last[4].toFixed(1);
+      $('c_best').textContent = Math.max(...rows.map(r => r[4])).toFixed(1);
+      $('c_max').textContent = Math.max(...rows.map(r => r[5]));
+      $('c_min').textContent = last[1].toFixed(1);
+    }
+    let done = '';
+    try { const r = await fetch('rl_train.done.flag?t=' + Date.now()); if (r.ok) done = (await r.text()).split('\n')[0]; } catch (e) {}
+    $('state').textContent = done ? '· 已结束 (' + done + ')' : '· 训练中';
+    $('status').textContent = '更新于 ' + new Date().toLocaleTimeString() + '，每 3 秒自动刷新';
+  } catch (e) { $('status').textContent = '读取失败：' + e; }
+}
+refresh(); setInterval(refresh, 3000);
+</script>
+</body>
+</html>
