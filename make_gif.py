@@ -48,7 +48,7 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
     g = max(1, round(cell * 0.07))
     if blink_on:
         for i, (x, y) in enumerate(body[1:-1], start=1):
-            shade = INK_LIGHT if game["_ids"][i] % 3 == 0 else INK  # every 3rd segment lighter, as in the page
+            shade = INK_LIGHT if i % 3 == 0 else INK  # every 3rd cell from the head is lighter, as in the page
             d.rectangle(
                 [
                     ox + x * cell + g,
@@ -110,7 +110,6 @@ def main():
     game["moves"] = moves
     stride = max(1, len(moves) // a.frames)
     body, foods, score = [tuple(c) for c in game["start"]], game["foods"], 0
-    game["_ids"] = [-i for i in range(len(body))]
     fi, food, frames = 0, foods[0], []
     for step in range(len(moves) + 1):
         if step % stride == 0 or step == len(moves):
@@ -121,10 +120,8 @@ def main():
         nh = (body[0][0] + DX[d], body[0][1] + DY[d])
         eat = food is not None and nh == tuple(food)
         body.insert(0, nh)
-        game["_ids"].insert(0, step)
         if not eat:
             body.pop()
-            game["_ids"].pop()
         else:
             score, fi = score + 1, fi + 1
             food = foods[fi] if fi < len(foods) else None
