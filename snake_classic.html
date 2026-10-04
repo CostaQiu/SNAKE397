@@ -43,6 +43,7 @@ const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only on
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
 const HEAD_COLOR = "#33d34a", TAIL_COLOR = "#e5383b";  // green head, red tail: easy to tell apart late in the game
 const INK = "#b4b9a8", INK_LIGHT = "#e2e6d6";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
+const EDGE_COLOR = "#3c4036";  // thin dark outline along the sides of the body
 const STRIPE = 10;  // block length: STRIPE light cells, STRIPE dark cells, repeating from the head
 const SAVE_KEY = "snakeClassic.v1.slot" + SLOT;
 const REPLAYS = window.REPLAYS_WINS || window.REPLAYS;
@@ -124,14 +125,41 @@ function draw() {
   const lw = Math.max(2, Math.round(2 * dpr)), pad = Math.max(3, Math.round(cell * 0.35));
   ctx.strokeStyle = INK; ctx.lineWidth = lw;
   ctx.strokeRect(ox - pad, oy - pad, W * cell + 2 * pad, H * cell + 2 * pad);
-  const g = Math.max(1, Math.round(cell * 0.07));
+  const g = Math.max(1, Math.round(cell * 0.07)), edge = Math.max(2, Math.round(cell * 0.12));
   ctx.fillStyle = INK;
   if (blinkOn) {
     const n = G.body.length;
+    const at = new Map(); G.body.forEach((c, i) => at.set(c[1] * W + c[0], i));  // cell -> index along the body
+    const shadeOf = i => Math.floor(i / STRIPE) % 2 === 0 ? INK_LIGHT : INK;
     for (let i = 1; i < n - 1; i++) {
       const [x, y] = G.body[i];
-      ctx.fillStyle = Math.floor(i / STRIPE) % 2 === 0 ? INK_LIGHT : INK;
-      ctx.fillRect(ox + x * cell + g, oy + y * cell + g, cell - 2 * g, cell - 2 * g); }
+      ctx.fillStyle = shadeOf(i);
+      ctx.fillRect(ox + x * cell + g, oy + y * cell + g, cell - 2 * g, cell - 2 * g);
+      if (i < n - 2) {  // join this cell to the next one, so the body reads as one tube
+        const [x2, y2] = G.body[i + 1];
+        ctx.fillRect(ox + Math.min(x, x2) * cell + g, oy + Math.min(y, y2) * cell + g,
+                     (Math.abs(x - x2) + 1) * cell - 2 * g, (Math.abs(y - y2) + 1) * cell - 2 * g);
+      }
+    }
+    // outline: a line on every side of a cell that does not lead to its neighbour along the body,
+    // so where the body folds back next to itself you can see which cells belong to which pass
+    ctx.fillStyle = EDGE_COLOR;
+    for (let i = 1; i < n - 1; i++) {
+      const [x, y] = G.body[i], x0 = ox + x * cell + g, y0 = oy + y * cell + g, s = cell - 2 * g;
+      for (let d = 0; d < 4; d++) {
+        const j = at.get((y + DY[d]) * W + (x + DX[d]));
+        if (j !== undefined && Math.abs(j - i) === 1) continue;  // continues along the body: no line
+        // stretch the line across the small gap to the next cell when the body continues along this side, so runs look unbroken
+        const link = (dx, dy) => { const k = at.get((y + dy) * W + (x + dx)); return k !== undefined && Math.abs(k - i) === 1 ? g : 0; };
+        if (d === 0 || d === 2) {
+          const a = link(-1, 0), b = link(1, 0);
+          ctx.fillRect(x0 - a, d === 0 ? y0 : y0 + s - edge, s + a + b, edge);
+        } else {
+          const a = link(0, -1), b = link(0, 1);
+          ctx.fillRect(d === 3 ? x0 : x0 + s - edge, y0 - a, edge, s + a + b);
+        }
+      }
+    }
     // head: green triangle pointing the way the snake is going; tail: red triangle pointing away from the body
     const hd = G.step > 0 ? +G.r.moves[G.step - 1] : headingFromStart();
     drawTri(G.body[0], hd, HEAD_COLOR, g);

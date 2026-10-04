@@ -10,6 +10,7 @@ HERE = Path(__file__).resolve().parent
 DX, DY = [0, 1, 0, -1], [-1, 0, 1, 0]
 W = H = 20
 INK_LIGHT = (226, 230, 214)
+EDGE = (60, 64, 54)
 INK, HEAD, TAIL = (180, 185, 168), (51, 211, 74), (229, 56, 59)
 SPS = 8  # steps per second shown by the screensaver
 
@@ -47,17 +48,32 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
     )
     g = max(1, round(cell * 0.07))
     if blink_on:
-        for i, (x, y) in enumerate(body[1:-1], start=1):
-            shade = INK_LIGHT if (i // 10) % 2 == 0 else INK  # blocks of 10 light / 10 dark counted from the head, as in the page
-            d.rectangle(
-                [
-                    ox + x * cell + g,
-                    oy + y * cell + g,
-                    ox + (x + 1) * cell - g - 1,
-                    oy + (y + 1) * cell - g - 1,
-                ],
-                fill=shade,
-            )
+        n = len(body)
+        at = {c: i for i, c in enumerate(body)}
+        edge = max(2, round(cell * 0.12))
+        shade_of = lambda i: INK_LIGHT if (i // 10) % 2 == 0 else INK  # blocks of 10 light / 10 dark from the head
+        for i in range(1, n - 1):
+            x, y = body[i]
+            if i < n - 2:  # join to the next cell: one continuous tube
+                x2, y2 = body[i + 1]
+                d.rectangle([ox + min(x, x2) * cell + g, oy + min(y, y2) * cell + g,
+                             ox + (max(x, x2) + 1) * cell - g - 1, oy + (max(y, y2) + 1) * cell - g - 1], fill=shade_of(i))
+            d.rectangle([ox + x * cell + g, oy + y * cell + g, ox + (x + 1) * cell - g - 1, oy + (y + 1) * cell - g - 1], fill=shade_of(i))
+        for i in range(1, n - 1):  # outline every side that does not lead along the body
+            x, y = body[i]
+            x0, y0, sz = ox + x * cell + g, oy + y * cell + g, cell - 2 * g
+            link = lambda dx, dy: g if abs(at.get((x + dx, y + dy), -9) - i) == 1 else 0
+            for k in range(4):
+                if abs(at.get((x + DX[k], y + DY[k]), -9) - i) == 1:
+                    continue
+                if k in (0, 2):
+                    la, lb = link(-1, 0), link(1, 0)
+                    yy = y0 if k == 0 else y0 + sz - edge
+                    d.rectangle([x0 - la, yy, x0 + sz + lb - 1, yy + edge - 1], fill=EDGE)
+                else:
+                    la, lb = link(0, -1), link(0, 1)
+                    xx = x0 if k == 3 else x0 + sz - edge
+                    d.rectangle([xx, y0 - la, xx + edge - 1, y0 + sz + lb - 1], fill=EDGE)
         hd = game["moves"][step - 1] if step > 0 else 1
         tri(d, ox + body[0][0] * cell, oy + body[0][1] * cell, cell, int(hd), HEAD, g)
         t, u = body[-1], body[-2]
