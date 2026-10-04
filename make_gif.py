@@ -11,7 +11,7 @@ DX, DY = [0, 1, 0, -1], [-1, 0, 1, 0]
 W = H = 20
 INK_LIGHT = (92, 255, 140)
 EDGE = (3, 36, 13)
-INK, HEAD, TAIL = (31, 174, 75), (228, 255, 236), (26, 158, 66)  # green phosphor palette
+INK, HEAD, TAIL = (31, 174, 75), (228, 255, 236), (62, 230, 115)  # green phosphor palette
 FOOD = PHOS = (77, 255, 125)
 SPS = 8  # steps per second shown by the screensaver
 
@@ -79,7 +79,10 @@ def render(game, step, score, food, body, size, fonts, blink_on=True):
         tri(d, ox + body[0][0] * cell, oy + body[0][1] * cell, cell, int(hd), HEAD, g)
         t, u = body[-1], body[-2]
         td = next(k for k in range(4) if (DX[k], DY[k]) == (t[0] - u[0], t[1] - u[1]))
-        tri(d, ox + t[0] * cell, oy + t[1] * cell, cell, td, TAIL, g)
+        r, mid = cell * 0.34, cell / 2  # small half-circle: flat side on the body, curve pointing away
+        cx, cy = ox + t[0] * cell + mid - DX[td] * (mid - g), oy + t[1] * cell + mid - DY[td] * (mid - g)
+        ang = {1: 0, 2: 90, 3: 180, 0: 270}[td]
+        d.pieslice([cx - r, cy - r, cx + r, cy + r], ang - 90, ang + 90, fill=TAIL)
     if food:
         f = max(g + 1, round(cell * 0.28))
         d.rectangle(

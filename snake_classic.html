@@ -42,7 +42,7 @@ const SLOT = Q("slot", 0), URL_SEED = Q("seed", 0), URL_STEP = Q("step", 0), URL
 const HOST_SCR = /host=scr/.test(hash);
 const SOUND_ON = !HOST_SCR || /snd=1/.test(hash);       // with the .scr only one screen makes sound
 const TAG = HOST_SCR ? "SnakeScr" : "SnakeCls";          // the launcher reads "<TAG> slot= seed= step=" from the window title
-const HEAD_COLOR = "#e4ffec", TAIL_COLOR = "#1a9e42", FOOD = "#4dff7d";  // all green: head = brightest, tail = dimmest, so they stay easy to tell apart
+const HEAD_COLOR = "#e4ffec", TAIL_COLOR = "#3ee673", FOOD = "#4dff7d";  // all green; the head is a triangle, the tail a small half-circle, so they stay easy to tell apart
 const INK = "#1fae4b", INK_LIGHT = "#5cff8c";  // body cells counted from the head alternate in blocks of STRIPE light / STRIPE dark; cells never move, but the blocks flow toward the head every step
 const EDGE_COLOR = "#03240d";  // thin dark outline along the sides of the body
 const STRIPE = 10;  // block length: STRIPE light cells, STRIPE dark cells, repeating from the head
@@ -120,6 +120,12 @@ function drawTri(cellXY, dir, color, g) {
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.moveTo(x0 + tri[0][0], y0 + tri[0][1]); ctx.lineTo(x0 + tri[1][0], y0 + tri[1][1]); ctx.lineTo(x0 + tri[2][0], y0 + tri[2][1]); ctx.closePath(); ctx.fill();
 }
+function drawHalfCircle(cellXY, dir, color, g) {  // small half-disc: flat side against the body, curve pointing the way the tail leaves
+  const mid = cell / 2, r = cell * 0.34, a = Math.atan2(DY[dir], DX[dir]);
+  const cx = ox + cellXY[0] * cell + mid - DX[dir] * (mid - g), cy = oy + cellXY[1] * cell + mid - DY[dir] * (mid - g);
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(cx, cy, r, a - Math.PI / 2, a + Math.PI / 2); ctx.closePath(); ctx.fill();
+}
 function draw() {
   draws++;
   ctx.fillStyle = "#000"; ctx.fillRect(0, 0, cv.width, cv.height);
@@ -165,7 +171,7 @@ function draw() {
     const hd = G.step > 0 ? +G.r.moves[G.step - 1] : headingFromStart();
     drawTri(G.body[0], hd, HEAD_COLOR, g);
     const t = G.body[n - 1], u = G.body[n - 2];
-    drawTri(t, DX.findIndex((v, k) => v === t[0] - u[0] && DY[k] === t[1] - u[1]), TAIL_COLOR, g);
+    drawHalfCircle(t, DX.findIndex((v, k) => v === t[0] - u[0] && DY[k] === t[1] - u[1]), TAIL_COLOR, g);
     ctx.fillStyle = FOOD;
   }
   if (G.food) { const f = Math.max(g + 1, Math.round(cell * 0.28)); ctx.fillRect(ox + G.food[0] * cell + f, oy + G.food[1] * cell + f, cell - 2 * f, cell - 2 * f); }

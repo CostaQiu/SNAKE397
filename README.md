@@ -37,7 +37,7 @@ plus two ways to watch it: a **3D cartoon viewer** in the browser and a real **W
 What it does:
 
 - One full-screen Edge window per monitor. All monitors show **the same game in lockstep** (each frame is computed from a shared clock).
-- Classic look: black background, green-phosphor look (everything green on black), light and dark body blocks, a bright head and a dim tail, SCORE / STEPS / GAME TIME and a clock.
+- Classic look: black background, green-phosphor look (everything green on black), light and dark body blocks, a bright triangle head and a small half-circle tail, SCORE / STEPS / GAME TIME and a clock.
   Constant 8 steps per second (1x), no smoothing.
 - Only the primary monitor makes sound (square-wave blips). Any input quits it and cleans up every process it started.
 - Progress is saved in `%LOCALAPPDATA%\SnakeSaver\progress.txt`, so the game continues next time instead of restarting.
